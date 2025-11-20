@@ -220,6 +220,23 @@
 </div>
 
 <script>
+// Initialize auto-moving carousel
+document.addEventListener('DOMContentLoaded', function() {
+  const carouselElement = document.querySelector('#featuredCarousel');
+  if (carouselElement) {
+    // Initialize Bootstrap carousel with auto-play
+    const carousel = new bootstrap.Carousel(carouselElement, {
+      interval: 5000, // 5 seconds
+      ride: 'carousel',
+      wrap: true,
+      pause: 'hover'
+    });
+    
+    // Ensure it starts automatically
+    carousel.cycle();
+  }
+});
+
 // Carousel pause/resume functions
 function pauseCarousel() {
   const carousel = document.querySelector('#featuredCarousel');
@@ -264,6 +281,29 @@ document.addEventListener('keydown', function(e) {
     const nextBtn = carousel.querySelector('.carousel-control-next');
     if (nextBtn) nextBtn.click();
   }
+});
+
+// Search form enhancement - submit on Enter key
+document.addEventListener('DOMContentLoaded', function() {
+  const searchForm = document.getElementById('searchForm');
+  const searchQuery = document.getElementById('searchQuery');
+  const genreFilter = document.getElementById('genreFilter');
+  
+  if (searchQuery) {
+    searchQuery.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchForm.submit();
+      }
+    });
+  }
+  
+  // Auto-submit on genre change (optional - can be removed if you prefer manual submit)
+  // if (genreFilter) {
+  //   genreFilter.addEventListener('change', function() {
+  //     searchForm.submit();
+  //   });
+  // }
 });
 </script>
 
