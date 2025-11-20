@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% set title = "Browse | StreamVerse" %}
+{% block content %}
+
+<div class="container py-4">
+  <form class="row g-2 mb-4" method="get">
+    <div class="col-md-5">
+      <input class="form-control sv-input" name="q" placeholder="Search title..." value="{{ q or '' }}">
+    </div>
+    <div class="col-md-3">
+      <input class="form-control sv-input" name="genre" placeholder="Genre..." value="{{ genre or '' }}">
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-danger w-100">Search</button>
+    </div>
+  </form>
+
+  <div class="row g-4">
+    {% for m in movies %}
+      <div class="col-6 col-sm-4 col-md-3 col-xl-2">
+        <div class="sv-tile">
+          <img src="{{ m.poster_url }}" alt="{{ m.title }}">
+          {% if m.tags and 'premium' in m.tags|lower %}
+            <div class="badge bg-warning text-dark sv-premium-badge">Premium</div>
+          {% endif %}
+          <div class="sv-tile-overlay">
+            <div class="sv-tile-actions">
+              {% if m.trailer_url %}
+                <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank">Play</a>
+              {% else %}
+                <a class="btn btn-sm btn-light"
+                   href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                   target="_blank">Play</a>
+              {% endif %}
+              <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}">Info</a>
+            </div>
+          </div>
+        </div>
+        <div class="sv-tile-meta mt-2">
+          <div class="sv-title">{{ m.title }}</div>
+          {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+        </div>
+      </div>
+    {% else %}
+      <p class="text-center text-muted">No movies found.</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

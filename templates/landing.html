@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StreamVerse – Watch & Review</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+  <style>
+    /* Background animation effect */
+    @keyframes zoomIn {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); }
+    }
+
+    body {
+      animation: zoomIn 25s ease-in-out infinite alternate;
+      margin: 0;
+      height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+    }
+
+    .overlay {
+      background: rgba(0, 0, 0, 0.7);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 60px;
+      font-size: 1.1rem;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: #ff4040;
+      letter-spacing: 2px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: #ff4040;
+    }
+
+    .btn-signup, .btn-logout {
+      background: #ff4040;
+      padding: 8px 16px;
+      border-radius: 6px;
+    }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: -50px;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: white;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      margin-bottom: 25px;
+      color: #ddd;
+    }
+
+    .hero-buttons .btn {
+      display: inline-block;
+      padding: 12px 26px;
+      margin: 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-explore {
+      background: #ff4040;
+      color: #fff;
+    }
+
+    .btn-explore:hover {
+      background: #ff2020;
+      transform: translateY(-2px);
+    }
+
+    .btn-login {
+      background: transparent;
+      border: 1px solid #fff;
+      color: #fff;
+    }
+
+    .btn-login:hover {
+      background: #fff;
+      color: #121212;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body style='background: url("{{ url_for("static", filename="images/MY.png") }}") center/cover no-repeat fixed;'>
+
+  <div class="overlay">
+    <header>
+      <div class="logo">🎬 StreamVerse</div>
+      <nav>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('logout') }}" class="btn btn-logout">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Login</a>
+          <a href="{{ url_for('register') }}" class="btn btn-signup">Join Now</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    <main class="hero">
+      <h1>Unlimited Movies, Reviews & More.</h1>
+      <p>Stream your universe anytime, anywhere.</p>
+      <div class="hero-buttons">
+        <a href="{{ url_for('home') }}" class="btn btn-explore">Explore Now</a>
+        <a href="{{ url_for('login') }}" class="btn btn-login">Login</a>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

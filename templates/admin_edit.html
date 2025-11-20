@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% set title = 'Edit Movie | StreamVerse' %}
+{% block content %}
+<div class="container py-4" style="max-width:900px;">
+  <h3 class="mb-3">Edit: {{ movie.title }}</h3>
+
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('edit_movie', movie_id=movie.id) }}">
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label">Title</label>
+        <input class="form-control sv-input" name="title" value="{{ movie.title }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Genre</label>
+        <input class="form-control sv-input" name="genre" value="{{ movie.genre }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Release Date</label>
+        <input class="form-control sv-input" name="release_date" value="{{ movie.release_date }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Age Rating</label>
+        <select class="form-select sv-input" name="age_rating">
+          <option value="">Select</option>
+          <option {% if movie.age_rating=='U' %}selected{% endif %}>U</option>
+          <option {% if movie.age_rating=='U/A' %}selected{% endif %}>U/A</option>
+          <option {% if movie.age_rating=='A' %}selected{% endif %}>A</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Runtime (min)</label>
+        <input class="form-control sv-input" name="runtime" type="number" min="1" value="{{ movie.runtime or '' }}">
+      </div>
+
+      <div class="col-md-8">
+        <label class="form-label">Trailer URL</label>
+        <input class="form-control sv-input" name="trailer_url" value="{{ movie.trailer_url }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">IMDb Rating</label>
+        <input class="form-control sv-input" name="imdb_rating" type="number" step="0.1" min="0" max="10" value="{{ movie.imdb_rating or '' }}">
+      </div>
+
+      <div class="col-md-8">
+        <label class="form-label">Poster File (upload)</label>
+        <input class="form-control sv-input" type="file" name="poster_file" accept="image/*">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Poster URL (fallback)</label>
+        <input class="form-control sv-input" name="poster_url" value="{{ movie.poster_url }}">
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label">Language (comma separated)</label>
+        <input class="form-control sv-input" name="language" value="{{ movie.language or '' }}">
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label">Tags (comma separated)</label>
+        <input class="form-control sv-input" name="tags" value="{{ movie.tags or '' }}">
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label">Description</label>
+        <textarea class="form-control sv-input" name="description" rows="4" required>{{ movie.description }}</textarea>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button class="btn btn-primary">Save Changes</button>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light ms-2">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

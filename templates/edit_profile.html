@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dark-theme">
+
+<header class="navbar">
+    <a href="{{ url_for('dashboard') }}" class="logo">🎥 StreamVerse</a>
+</header>
+
+<div class="edit-profile-container">
+    <h2>Edit Profile</h2>
+
+    <form method="POST" action="{{ url_for('edit_profile') }}" enctype="multipart/form-data">
+        
+        <label class="input-label">New Username</label>
+        <input class="input-box" type="text" name="username" value="{{ user.username }}">
+
+        <label class="input-label">Change Profile Picture</label>
+        <input class="input-file" type="file" name="profile_pic" accept="image/*">
+
+        <button class="btn-save" type="submit">Save Changes ✅</button>
+    </form>
+</div>
+
+</body>
+</html>

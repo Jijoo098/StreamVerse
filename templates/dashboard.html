@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ current_user.username }} | Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+
+<body class="bg-dark text-light">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark glass-nav fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fs-3" href="{{ url_for('home') }}">🎬 StreamVerse</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('profile', username=current_user.username) }}">Profile</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-danger fw-bold" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- DASHBOARD PROFILE HEADER -->
+    <section class="container text-center" style="margin-top: 110px;">
+        <div class="profile-info">
+
+            {% if current_user.profile_pic %}
+                <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_pic) }}" class="profile-pic">
+            {% else %}
+                <img src="{{ url_for('static', filename='images/default_profile.png') }}" class="profile-pic">
+            {% endif %}
+
+            <h2 class="profile-name">{{ current_user.username }}</h2>
+                        <p class="text-secondary">{{ current_user.email }}</p>
+                        {% if active %}
+                            <p class="text-success fw-bold">Subscription: {{ active.plan.name }} (valid until {{ active.end_date.strftime('%Y-%m-%d') }})</p>
+                        {% else %}
+                            <p class="text-warning fw-bold">No active subscription — <a href="{{ url_for('subscriptions') }}">Subscribe now</a></p>
+                        {% endif %}
+        </div>
+    </section>
+
+    <!-- WATCHLIST MOVIES -->
+    <section class="container mt-5 pt-3">
+        <h3 class="text-center mb-4 fw-bold">⭐ Your Watchlist</h3>
+
+        <div class="row gy-4 justify-content-center">
+            {% if movies and movies|length > 0 %}
+                {% for movie in movies %}
+                <div class="col-md-3 col-sm-6">
+                    <div class="movie-card text-center p-2">
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">
+                            <img src="{{ movie.poster_url }}" class="img-fluid rounded-4" alt="{{ movie.title }}">
+                        </a>
+                        <h6 class="mt-2">{{ movie.title }}</h6>
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" 
+                           class="btn btn-sm btn-outline-light mt-2">Watch Now</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-center text-muted fw-bold">
+                    Watchlist Empty 😢 Add something you love! 🎞️
+                </p>
+            {% endif %}
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

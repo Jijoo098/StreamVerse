@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3>User Subscriptions</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>User</th><th>Plan</th><th>Start</th><th>End</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in subscriptions %}
+        {% set sub = row[0] %}
+        {% set plan = row[1] %}
+        {% set user = row[2] %}
+      <tr>
+        <td>{{ user.username }} ({{ user.email }})</td>
+        <td>{{ plan.name }}</td>
+        <td>{{ sub.start_date.strftime('%Y-%m-%d') }}</td>
+        <td>{{ sub.end_date.strftime('%Y-%m-%d') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

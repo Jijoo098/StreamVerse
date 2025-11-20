@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Confirm Subscription</h3>
+          <p class="lead">Plan: <strong>{{ plan.name }}</strong></p>
+          <p>Price: <strong>${{ '%.2f'|format(plan.price) }}</strong></p>
+          <p>Duration: {{ plan.duration_days }} days</p>
+          <form method="POST">
+            <button class="btn btn-success">Confirm & Pay</button>
+            <a class="btn btn-secondary ms-2" href="{{ url_for('subscriptions') }}">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

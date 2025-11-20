@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3>Subscription Plans</h3>
+  <div class="mb-3">
+    <a class="btn btn-danger" href="{{ url_for('admin_subscription_plans_add') }}">+ Add Plan</a>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th><th>Price</th><th>Duration (days)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in plans %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>${{ '%.2f'|format(p.price) }}</td>
+        <td>{{ p.duration_days }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

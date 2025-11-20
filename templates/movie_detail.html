@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% set title = movie.title ~ " | StreamVerse" %}
+
+{% block content %}
+<!-- Hero with blurred background -->
+<section class="sv-hero-blur" style="--hero-bg:url('{{ movie.poster_url }}')">
+  <div class="container py-5">
+    <div class="row g-4 align-items-start">
+      <!-- Poster -->
+      <div class="col-lg-4">
+        <img class="sv-poster-xxl" src="{{ movie.poster_url }}" alt="{{ movie.title }}">
+      </div>
+
+      <!-- Info -->
+      <div class="col-lg-8">
+        <h1 class="display-4 fw-bold mb-2">{{ movie.title }}</h1>
+
+        {% if movie.genre or movie.release_date %}
+        <p class="text-secondary mb-3">
+          {% if movie.genre %}<strong>Genre:</strong> {{ movie.genre }}{% endif %}
+          {% if movie.genre and movie.release_date %} &nbsp;|&nbsp; {% endif %}
+          {% if movie.release_date %}<strong>Release:</strong> {{ movie.release_date }}{% endif %}
+        </p>
+        {% endif %}
+
+        <p class="sv-desc mb-3">{{ movie.description }}</p>
+
+        <!-- Action Buttons -->
+        <div class="d-flex flex-wrap gap-2">
+          {% if movie.trailer_url %}
+            <a class="btn btn-light" href="{{ movie.trailer_url }}" target="_blank">▶ Play Trailer</a>
+          {% else %}
+            <a class="btn btn-light" target="_blank"
+               href="https://www.youtube.com/results?search_query={{ movie.title|urlencode }}+trailer">▶ Play Trailer</a>
+          {% endif %}
+
+          {% if current_user.is_authenticated %}
+            <a class="btn btn-danger" href="{{ url_for('add_review', movie_id=movie.id) }}">⭐ Add Review</a>
+            <form method="POST" action="{{ url_for('add_to_watchlist', movie_id=movie.id) }}" class="d-inline">
+              <button class="btn btn-outline-light">➕ Add to Watchlist</button>
+            </form>
+          {% else %}
+            <a class="btn btn-danger" href="{{ url_for('login') }}">Login to Review</a>
+          {% endif %}
+
+          {% if current_user.is_authenticated and current_user.is_admin %}
+            <!-- Admin: Edit (modal) -->
+            <button class="btn btn-outline-warning ms-2" data-bs-toggle="modal" data-bs-target="#editMovieModal">
+              ✏ Edit Movie
+            </button>
+
+            <!-- Admin: Delete (full button, with confirm) -->
+            <form action="{{ url_for('delete_movie', movie_id=movie.id) }}" method="POST"
+                  onsubmit="return confirm('Delete {{ movie.title }} permanently?');" class="d-inline">
+              <button type="submit" class="btn btn-danger ms-2">🗑 Delete Movie</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Reviews -->
+<div class="container py-5">
+  <h3 class="mb-3">User Reviews</h3>
+  {% if reviews and reviews|length > 0 %}
+    <div class="sv-reviews">
+      {% for review in reviews %}
+      <div class="sv-review">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="fw-semibold">{{ review.user.username if review.user else 'User' }}</div>
+          <div>⭐ {{ review.rating }}/10</div>
+        </div>
+        <p class="mb-1">{{ review.content }}</p>
+        <small class="text-secondary">{{ review.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-secondary">No reviews yet. Be the first!</p>
+  {% endif %}
+</div>
+
+{% if current_user.is_authenticated and current_user.is_admin %}
+<!-- Edit Movie Modal (Admin quick edit) -->
+<div class="modal fade" id="editMovieModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content sv-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Movie — {{ movie.title }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('edit_movie', movie_id=movie.id) }}">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Title</label>
+              <input class="form-control sv-input" name="title" value="{{ movie.title }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Genre</label>
+              <input class="form-control sv-input" name="genre" value="{{ movie.genre or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Release Date</label>
+              <input class="form-control sv-input" name="release_date" value="{{ movie.release_date or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Trailer URL</label>
+              <input class="form-control sv-input" name="trailer_url" value="{{ movie.trailer_url or '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Poster URL</label>
+              <input class="form-control sv-input" name="poster_url" value="{{ movie.poster_url or '' }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea class="form-control sv-input" name="description" rows="4" required>{{ movie.description }}</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-light" data-bs-dismiss="modal" type="button">Cancel</button>
+          <button class="btn btn-danger" type="submit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

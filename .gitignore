@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+venv/
+.env
+
+# Distribution
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# VS Code
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Flask instance folder
+instance/
+
+# Uploaded media
+static/uploads/
+static/posters/
+
+# Database
+*.db
+
+# logs
+*.log
+
+# pycache
+.pytest_cache/
+
+# Others
+.env.local
+.secret

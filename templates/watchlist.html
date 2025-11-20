@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Your Watchlist</h2>
+{% if items %}
+  <ul class="list-group">
+  {% for it in items %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <strong>{{ it.movie.title }}</strong><br>
+        <small class="text-muted">{{ it.movie.genre }}</small>
+      </div>
+      <div>
+        <a href="{{ url_for('movie_detail', movie_id=it.movie.id) }}" class="btn btn-sm btn-primary">View</a>
+        <form class="d-inline" method="post" action="{{ url_for('remove_from_watchlist', movie_id=it.movie.id) }}">
+          <button class="btn btn-sm btn-danger">Remove</button>
+        </form>
+      </div>
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>Your watchlist is empty.</p>
+{% endif %}
+{% endblock %}

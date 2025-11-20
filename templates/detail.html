@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Browse</h2>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-5"><input class="form-control" name="q" placeholder="Search title..." value="{{ q }}"></div>
+  <div class="col-md-3"><input class="form-control" name="genre" placeholder="Genre..." value="{{ genre }}"></div>
+  <div class="col-md-2"><button class="btn btn-secondary">Search</button></div>
+</form>
+
+<div class="row">
+  {% for m in movies %}
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>{{ m.title }}</h5>
+          <p class="text-muted">{{ m.genre }}</p>
+          <p class="text-truncate">{{ m.description }}</p>
+          <a href="{{ url_for('movie_detail', movie_id=m.id) }}" class="btn btn-sm btn-primary">Details</a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <p>No movies found.</p>
+  {% endfor %}
+</div>
+{% endblock %}

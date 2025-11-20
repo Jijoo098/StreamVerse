@@ -1,0 +1,134 @@
+/* ====== Core Theme ====== */
+.sv-dark{ background:#0b0c10; color:#fff; }
+.sv-nav{ background:rgba(10,10,10,.85); backdrop-filter: blur(10px); border-bottom:1px solid rgba(255,255,255,.07); }
+.sv-logo{ font-size:1.3rem }
+.sv-nav .nav-link{ color:#cfcfcf; }
+.sv-nav .nav-link:hover, .sv-nav .nav-link.active{ color:#fff; }
+.sv-dd .dropdown-item{ color:#ddd; }
+.sv-dd .dropdown-item:hover{ background:#222; color:#fff; }
+.sv-main{ padding-top:84px; }
+.sv-input{ background:#121317; border:1px solid rgba(255,255,255,.1); color:#fff; }
+.sv-input:focus{ box-shadow:0 0 0 .25rem rgba(229,9,20,.25); border-color:#e50914; }
+.sv-flashes{ position:sticky; top:84px; z-index:15; }
+
+/* Avatars */
+.sv-avatar{ width:30px; height:30px; border-radius:50%; object-fit:cover; }
+.sv-avatar-xl{ width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid rgba(255,255,255,.2); }
+
+/* Dashboard/profile image (used in templates as .profile-pic) */
+.profile-pic{
+  width:120px;
+  height:120px;
+  max-width:30vw;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid rgba(255,255,255,0.08);
+  display:inline-block;
+}
+
+@media (max-width:576px){
+  .profile-pic{ width:95px; height:95px; }
+}
+
+/* Tiles (Browse & Watchlist) */
+.sv-tile{ position:relative; border-radius:10px; overflow:hidden; background:#111; }
+.sv-tile.small img{ height:200px; }
+.sv-tile img{ width:100%; height:260px; object-fit:cover; display:block; transition: transform .3s ease; }
+.sv-tile:hover img{ transform: scale(1.06); }
+.sv-tile-overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,.15)); opacity:0; transition:.25s; }
+.sv-tile:hover .sv-tile-overlay{ opacity:1; }
+.sv-tile-actions .btn{ margin:0 .25rem; }
+
+/* Premium badge on tiles */
+.sv-premium-badge{ position:absolute; top:10px; left:10px; z-index:20; font-size:.75rem; padding:.25rem .5rem; border-radius:8px; }
+
+.sv-tile-meta .sv-title{ font-weight:600; }
+.sv-tile-meta .sv-genre{ color:#9aa; font-size:.9rem }
+
+/* Cards (Admin) */
+.sv-card{ background:#121317; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.06); }
+.sv-card img{ width:100%; height:240px; object-fit:cover; }
+.sv-card-body{ padding:.75rem; }
+.sv-card-title{ font-weight:600; }
+.sv-card-sub{ color:#9aa; font-size:.9rem }
+
+/* Poster Detail */
+.sv-poster-xl{ width:100%; border-radius:14px; box-shadow: 0 12px 30px rgba(0,0,0,.6); }
+.sv-title-xl{ letter-spacing:.5px }
+.sv-desc{ color:#cfcfcf; line-height:1.7 }
+.sv-hr{ border-color: rgba(255,255,255,.08) }
+
+/* ===== Admin Dashboard Styles ===== */
+.admin-header h2{ margin:0; font-size:1.6rem; }
+.admin-header small{ color:rgba(255,255,255,0.6); }
+.admin-card{ background:#0f1113; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.04); display:flex; flex-direction:column; }
+.admin-card .card-poster{ height:280px; overflow:hidden; position:relative; }
+.admin-card .card-poster img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Use a consistent poster aspect ratio and responsive sizing */
+.admin-card .card-poster{ aspect-ratio: 2/3; height: auto; max-height: 320px; }
+.admin-card .sv-card-body{ padding:12px; display:flex; flex-direction:column; justify-content:space-between; flex:1 1 auto; }
+.admin-card{ height:100%; min-height:420px; box-shadow:0 2px 16px rgba(0,0,0,0.10); }
+.admin-card .sv-card-title{ font-weight:700; font-size:1rem; }
+.admin-card .sv-card-sub{ color:#9aa; font-size:.85rem; }
+.admin-actions .btn{ padding:.45rem .6rem; font-size:.85rem; }
+.admin-actions form{ display:block; }
+
+@media (max-width:576px){
+  .admin-card .card-poster{ height:180px; }
+}
+
+/* Stack admin action buttons on small screens */
+@media (max-width:576px){
+  .admin-actions{ flex-direction:column !important; }
+  .admin-actions .btn, .admin-actions form{ width:100%; }
+  .admin-actions .btn:not(:last-child){ margin-bottom:8px; }
+}
+
+/* Stat cards */
+.sv-stat{ background:#121317; border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:18px; text-align:center; }
+.sv-stat-num{ font-size:1.4rem; font-weight:700; }
+.sv-stat-label{ color:#9aa }
+
+/* Alerts */
+.sv-alert{ background:#141515; border:1px solid rgba(255,255,255,.08); color:#ddd; }
+/* ====== Blur Hero Detail ====== */
+.sv-hero-blur{
+  position: relative;
+  isolation:isolate;
+}
+.sv-hero-blur::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image: var(--hero-bg);
+  background-size: cover; background-position:center;
+  filter: blur(20px) brightness(.5);
+  transform: scale(1.1);
+  z-index:-2;
+}
+.sv-hero-blur::after{
+  content:"";
+  position:absolute; inset:0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.65), rgba(0,0,0,.85));
+  z-index:-1;
+}
+.sv-poster-xxl{
+  width:100%; max-width:420px; border-radius:16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.7);
+}
+
+/* Reviews block */
+.sv-reviews{ display:grid; gap:14px; }
+.sv-review{
+  background:#121317; border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; padding:14px;
+}
+
+/* Modal dark */
+.sv-modal{
+  background:#0f1115; color:#ddd;
+  border:1px solid rgba(255,255,255,.08);
+}
+.sv-modal .modal-header{ border-bottom:1px solid rgba(255,255,255,.08); }
+.sv-modal .modal-footer{ border-top:1px solid rgba(255,255,255,.08); }

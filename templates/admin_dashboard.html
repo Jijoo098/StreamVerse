@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% set title = 'Admin Dashboard | StreamVerse' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center admin-header mb-3">
+    <div>
+      <h2 class="mb-0">Admin Dashboard</h2>
+      <small class="text-muted">Manage movies and content</small>
+    </div>
+    <div class="text-end">
+      <a href="{{ url_for('add_movie') }}" class="btn btn-danger me-2">+ Add Movie</a>
+      <a href="{{ url_for('admin_subscription_plans') }}" class="btn btn-outline-light me-2">Subscription Plans</a>
+      <a href="{{ url_for('admin_subscription_users') }}" class="btn btn-outline-light me-2">User Subscriptions</a>
+      <a href="{{ url_for('home') }}" class="btn btn-outline-light">View Site</a>
+    </div>
+  </div>
+
+  {% if movies and movies|length > 0 %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      {% for movie in movies %}
+        <div class="col d-flex">
+          <div class="sv-card admin-card flex-fill mb-4">
+            <div class="card-poster">
+              <img loading="lazy" src="{{ url_for('static', filename=movie.poster_path) if movie.poster_path else movie.poster_url }}" alt="{{ movie.title }}">
+            </div>
+            <div class="sv-card-body d-flex flex-column justify-content-between">
+              <div>
+                <div class="sv-card-title text-truncate">{{ movie.title }}</div>
+                <div class="sv-card-sub small text-muted">{{ movie.genre or '—' }} • {{ movie.release_date or '' }}</div>
+              </div>
+              <div class="admin-actions mt-3 d-flex gap-2">
+                <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" class="btn btn-sm btn-outline-light flex-fill">View</a>
+                <a href="{{ url_for('admin_edit', movie_id=movie.id) }}" class="btn btn-sm btn-primary flex-fill">Edit</a>
+                <form action="{{ url_for('delete_movie', movie_id=movie.id) }}" method="POST" onsubmit="return confirm('Delete this movie?');" class="flex-fill m-0">
+                  <button type="submit" class="btn btn-sm btn-danger w-100">Delete</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="bg-black p-4 rounded text-center">
+      <p class="mb-0 text-muted">No movies yet — add your first title.</p>
+  <a href="{{ url_for('add_movie') }}" class="btn btn-danger mt-3">Add Movie</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
