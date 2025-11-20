@@ -85,83 +85,305 @@
 {% endif %}
 
 <div class="container py-4">
-  <!-- Search Bar -->
-  <form class="row g-2 mb-5" method="get" action="{{ url_for('home') }}" id="searchForm">
-    <div class="col-md-5">
-      <input class="form-control sv-input" name="q" id="searchQuery" placeholder="🔍 Search movies..." value="{{ q or '' }}" autocomplete="off">
-    </div>
-    <div class="col-md-3">
-      <select class="form-control sv-input" name="genre" id="genreFilter">
-        <option value="">🎭 All Genres</option>
-        <option value="Action" {% if genre == 'Action' %}selected{% endif %}>Action</option>
-        <option value="Drama" {% if genre == 'Drama' %}selected{% endif %}>Drama</option>
-        <option value="Comedy" {% if genre == 'Comedy' %}selected{% endif %}>Comedy</option>
-        <option value="Thriller" {% if genre == 'Thriller' %}selected{% endif %}>Thriller</option>
-        <option value="Romance" {% if genre == 'Romance' %}selected{% endif %}>Romance</option>
-        <option value="Horror" {% if genre == 'Horror' %}selected{% endif %}>Horror</option>
-        <option value="Crime" {% if genre == 'Crime' %}selected{% endif %}>Crime</option>
-        <option value="Fantasy" {% if genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
-        <option value="Adventure" {% if genre == 'Adventure' %}selected{% endif %}>Adventure</option>
-        <option value="Animation" {% if genre == 'Animation' %}selected{% endif %}>Animation</option>
-        <option value="Sport" {% if genre == 'Sport' %}selected{% endif %}>Sport</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-danger w-100">Search</button>
-    </div>
-    {% if q or genre %}
-      <div class="col-md-2">
-        <a href="{{ url_for('home') }}" class="btn btn-outline-light w-100">Clear</a>
+  <!-- Crunchyroll-style Search Bar -->
+  <div class="sv-search-container mb-5">
+    <form method="get" action="{{ url_for('home') }}" id="searchForm" class="sv-search-form">
+      <div class="sv-search-wrapper">
+        <div class="sv-search-icon">🔍</div>
+        <input 
+          type="text" 
+          class="sv-search-input" 
+          name="q" 
+          id="searchQuery" 
+          placeholder="Search for movies, genres, or descriptions..." 
+          value="{{ q or '' }}" 
+          autocomplete="off"
+        >
+        {% if q %}
+          <button type="button" class="sv-search-clear" id="clearSearch" aria-label="Clear search">✕</button>
+        {% endif %}
       </div>
-    {% endif %}
-  </form>
-
-  <!-- Trending Movies Carousel (Horizontal Scroll) -->
-  {% if not q and not genre and movies|length > 6 %}
-  <div class="container py-4">
-    <div class="sv-section">
-      <h2 class="sv-section-title">🔥 Trending Now</h2>
-      <div class="sv-horizontal-carousel">
-        <div class="sv-carousel-container">
-          <div class="sv-carousel-track" id="trendingCarousel">
-            {% for m in movies[:10] %}
-            <div class="sv-carousel-item">
-              <div class="sv-tile">
-                <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
-                  <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
-                  {% if m.tags and 'premium' in m.tags|lower %}
-                    <div class="sv-premium-badge">Premium</div>
-                  {% endif %}
-                  <div class="sv-tile-overlay">
-                    <div class="sv-tile-actions">
-                      {% if m.trailer_url %}
-                        <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
-                      {% else %}
-                        <a class="btn btn-sm btn-light"
-                           href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
-                           target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
-                      {% endif %}
-                      <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
-                    </div>
-                  </div>
-                </a>
-              </div>
-              <div class="sv-tile-meta mt-2">
-                <div class="sv-title">{{ m.title }}</div>
-                {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
-                {% if m.imdb_rating %}
-                  <div class="sv-genre mt-1">⭐ {{ "%.1f"|format(m.imdb_rating) }}/10</div>
-                {% endif %}
-              </div>
-            </div>
-            {% endfor %}
-          </div>
+      <div class="sv-filter-wrapper">
+        <select class="sv-filter-select" name="genre" id="genreFilter">
+          <option value="">All Genres</option>
+          <option value="Action" {% if genre == 'Action' %}selected{% endif %}>Action</option>
+          <option value="Drama" {% if genre == 'Drama' %}selected{% endif %}>Drama</option>
+          <option value="Comedy" {% if genre == 'Comedy' %}selected{% endif %}>Comedy</option>
+          <option value="Thriller" {% if genre == 'Thriller' %}selected{% endif %}>Thriller</option>
+          <option value="Romance" {% if genre == 'Romance' %}selected{% endif %}>Romance</option>
+          <option value="Horror" {% if genre == 'Horror' %}selected{% endif %}>Horror</option>
+          <option value="Crime" {% if genre == 'Crime' %}selected{% endif %}>Crime</option>
+          <option value="Fantasy" {% if genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+          <option value="Adventure" {% if genre == 'Adventure' %}selected{% endif %}>Adventure</option>
+          <option value="Animation" {% if genre == 'Animation' %}selected{% endif %}>Animation</option>
+          <option value="Sport" {% if genre == 'Sport' %}selected{% endif %}>Sport</option>
+        </select>
+        {% if q or genre %}
+          <a href="{{ url_for('home') }}" class="sv-filter-clear">Clear Filters</a>
+        {% endif %}
+      </div>
+    </form>
+    
+    <!-- Search Results Dropdown -->
+    <div class="sv-search-results" id="searchResults" style="display: none;">
+      <div class="sv-search-results-header">
+        <span id="resultsCount">0 results</span>
+        <button type="button" class="sv-close-results" id="closeResults">✕</button>
+      </div>
+      <div class="sv-search-results-content" id="resultsContent">
+        <!-- Results will be populated here -->
+      </div>
+      <div class="sv-search-suggestions" id="searchSuggestions">
+        <div class="sv-suggestions-section">
+          <h4>Recent Searches</h4>
+          <div class="sv-suggestion-tags" id="recentSearches"></div>
         </div>
-        <button class="sv-carousel-btn sv-carousel-prev" onclick="scrollCarousel('trendingCarousel', -1)">‹</button>
-        <button class="sv-carousel-btn sv-carousel-next" onclick="scrollCarousel('trendingCarousel', 1)">›</button>
+        <div class="sv-suggestions-section">
+          <h4>Popular Genres</h4>
+          <div class="sv-suggestion-tags" id="popularGenres"></div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Crunchyroll-style Content Sections -->
+  {% if not q and not genre %}
+  
+  <!-- Continue Watching -->
+  {% if continue_watching and continue_watching|length > 0 %}
+  <div class="sv-content-row">
+    <div class="sv-row-header">
+      <h2 class="sv-row-title">▶ Continue Watching</h2>
+      <a href="{{ url_for('watchlist') }}" class="sv-row-see-all">See All</a>
+    </div>
+    <div class="sv-horizontal-carousel">
+      <div class="sv-carousel-container">
+        <div class="sv-carousel-track" id="continueWatchingCarousel">
+          {% for m in continue_watching %}
+          <div class="sv-carousel-item">
+            <div class="sv-tile">
+              <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
+                <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+                {% if m.tags and 'premium' in m.tags|lower %}
+                  <div class="sv-premium-badge">Premium</div>
+                {% endif %}
+                <div class="sv-tile-overlay">
+                  <div class="sv-tile-actions">
+                    {% if m.trailer_url %}
+                      <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
+                    {% else %}
+                      <a class="btn btn-sm btn-light"
+                         href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                         target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="sv-tile-meta mt-2">
+              <div class="sv-title">{{ m.title }}</div>
+              {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="sv-carousel-btn sv-carousel-prev" onclick="scrollCarousel('continueWatchingCarousel', -1)">‹</button>
+      <button class="sv-carousel-btn sv-carousel-next" onclick="scrollCarousel('continueWatchingCarousel', 1)">›</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Top Picks for You -->
+  {% if top_picks and top_picks|length > 0 %}
+  <div class="sv-content-row">
+    <div class="sv-row-header">
+      <h2 class="sv-row-title">⭐ Top Picks for You</h2>
+    </div>
+    <div class="sv-horizontal-carousel">
+      <div class="sv-carousel-container">
+        <div class="sv-carousel-track" id="topPicksCarousel">
+          {% for m in top_picks %}
+          <div class="sv-carousel-item">
+            <div class="sv-tile">
+              <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
+                <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+                {% if m.tags and 'premium' in m.tags|lower %}
+                  <div class="sv-premium-badge">Premium</div>
+                {% endif %}
+                {% if m.imdb_rating %}
+                  <div class="sv-rating-badge">⭐ {{ "%.1f"|format(m.imdb_rating) }}</div>
+                {% endif %}
+                <div class="sv-tile-overlay">
+                  <div class="sv-tile-actions">
+                    {% if m.trailer_url %}
+                      <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
+                    {% else %}
+                      <a class="btn btn-sm btn-light"
+                         href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                         target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="sv-tile-meta mt-2">
+              <div class="sv-title">{{ m.title }}</div>
+              {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="sv-carousel-btn sv-carousel-prev" onclick="scrollCarousel('topPicksCarousel', -1)">‹</button>
+      <button class="sv-carousel-btn sv-carousel-next" onclick="scrollCarousel('topPicksCarousel', 1)">›</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recently Added -->
+  {% if recently_added and recently_added|length > 0 %}
+  <div class="sv-content-row">
+    <div class="sv-row-header">
+      <h2 class="sv-row-title">🆕 Recently Added</h2>
+      <a href="{{ url_for('home') }}?genre=" class="sv-row-see-all">See All</a>
+    </div>
+    <div class="sv-horizontal-carousel">
+      <div class="sv-carousel-container">
+        <div class="sv-carousel-track" id="recentlyAddedCarousel">
+          {% for m in recently_added %}
+          <div class="sv-carousel-item">
+            <div class="sv-tile">
+              <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
+                <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+                {% if m.tags and 'premium' in m.tags|lower %}
+                  <div class="sv-premium-badge">Premium</div>
+                {% endif %}
+                <div class="sv-new-badge">NEW</div>
+                <div class="sv-tile-overlay">
+                  <div class="sv-tile-actions">
+                    {% if m.trailer_url %}
+                      <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
+                    {% else %}
+                      <a class="btn btn-sm btn-light"
+                         href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                         target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="sv-tile-meta mt-2">
+              <div class="sv-title">{{ m.title }}</div>
+              {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="sv-carousel-btn sv-carousel-prev" onclick="scrollCarousel('recentlyAddedCarousel', -1)">‹</button>
+      <button class="sv-carousel-btn sv-carousel-next" onclick="scrollCarousel('recentlyAddedCarousel', 1)">›</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Popular This Week -->
+  {% if popular_this_week and popular_this_week|length > 0 %}
+  <div class="sv-content-row">
+    <div class="sv-row-header">
+      <h2 class="sv-row-title">🔥 Popular This Week</h2>
+    </div>
+    <div class="sv-horizontal-carousel">
+      <div class="sv-carousel-container">
+        <div class="sv-carousel-track" id="popularWeekCarousel">
+          {% for m in popular_this_week %}
+          <div class="sv-carousel-item">
+            <div class="sv-tile">
+              <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
+                <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+                {% if m.tags and 'premium' in m.tags|lower %}
+                  <div class="sv-premium-badge">Premium</div>
+                {% endif %}
+                {% if m.imdb_rating %}
+                  <div class="sv-rating-badge">⭐ {{ "%.1f"|format(m.imdb_rating) }}</div>
+                {% endif %}
+                <div class="sv-tile-overlay">
+                  <div class="sv-tile-actions">
+                    {% if m.trailer_url %}
+                      <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
+                    {% else %}
+                      <a class="btn btn-sm btn-light"
+                         href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                         target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="sv-tile-meta mt-2">
+              <div class="sv-title">{{ m.title }}</div>
+              {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="sv-carousel-btn sv-carousel-prev" onclick="scrollCarousel('popularWeekCarousel', -1)">‹</button>
+      <button class="sv-carousel-btn sv-carousel-next" onclick="scrollCarousel('popularWeekCarousel', 1)">›</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Genre-based Sections -->
+  {% for genre_name, genre_movies in genre_sections.items() %}
+  <div class="sv-content-row">
+    <div class="sv-row-header">
+      <h2 class="sv-row-title">{{ genre_name }}</h2>
+      <a href="{{ url_for('home') }}?genre={{ genre_name }}" class="sv-row-see-all">See All</a>
+    </div>
+    <div class="sv-horizontal-carousel">
+      <div class="sv-carousel-container">
+        <div class="sv-carousel-track" id="genre{{ loop.index }}Carousel">
+          {% for m in genre_movies %}
+          <div class="sv-carousel-item">
+            <div class="sv-tile">
+              <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
+                <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+                {% if m.tags and 'premium' in m.tags|lower %}
+                  <div class="sv-premium-badge">Premium</div>
+                {% endif %}
+                <div class="sv-tile-overlay">
+                  <div class="sv-tile-actions">
+                    {% if m.trailer_url %}
+                      <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
+                    {% else %}
+                      <a class="btn btn-sm btn-light"
+                         href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                         target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="sv-tile-meta mt-2">
+              <div class="sv-title">{{ m.title }}</div>
+              {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="sv-carousel-btn sv-carousel-prev" onclick="scrollCarousel('genre{{ loop.index }}Carousel', -1)">‹</button>
+      <button class="sv-carousel-btn sv-carousel-next" onclick="scrollCarousel('genre{{ loop.index }}Carousel', 1)">›</button>
+    </div>
+  </div>
+  {% endfor %}
+
   {% endif %}
 
   <!-- Content Section -->
@@ -332,28 +554,262 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// Search form enhancement - submit on Enter key
-document.addEventListener('DOMContentLoaded', function() {
-  const searchForm = document.getElementById('searchForm');
-  const searchQuery = document.getElementById('searchQuery');
-  const genreFilter = document.getElementById('genreFilter');
-  
-  if (searchQuery) {
-    searchQuery.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        searchForm.submit();
-      }
-    });
-  }
-  
-  // Auto-submit on genre change (optional - can be removed if you prefer manual submit)
-  // if (genreFilter) {
-  //   genreFilter.addEventListener('change', function() {
-  //     searchForm.submit();
-  //   });
-  // }
-});
+ // Real-time search functionality (Crunchyroll-style)
+ document.addEventListener('DOMContentLoaded', function() {
+   const searchForm = document.getElementById('searchForm');
+   const searchQuery = document.getElementById('searchQuery');
+   const genreFilter = document.getElementById('genreFilter');
+   const clearSearchBtn = document.getElementById('clearSearch');
+   const searchResults = document.getElementById('searchResults');
+   const resultsContent = document.getElementById('resultsContent');
+   const resultsCount = document.getElementById('resultsCount');
+   const recentSearchesDiv = document.getElementById('recentSearches');
+   const popularGenresDiv = document.getElementById('popularGenres');
+   const closeResultsBtn = document.getElementById('closeResults');
+   
+   let searchTimeout;
+   let isSubmitting = false;
+   
+   // Load recent searches from localStorage
+   function getRecentSearches() {
+     const recent = localStorage.getItem('streamverse_recent_searches');
+     return recent ? JSON.parse(recent) : [];
+   }
+   
+   function saveRecentSearch(query) {
+     if (!query || query.trim() === '') return;
+     const recent = getRecentSearches();
+     const trimmedQuery = query.trim().toLowerCase();
+     
+     // Remove if already exists
+     const index = recent.indexOf(trimmedQuery);
+     if (index > -1) recent.splice(index, 1);
+     
+     // Add to beginning
+     recent.unshift(trimmedQuery);
+     
+     // Keep only last 5
+     if (recent.length > 5) recent.pop();
+     
+     localStorage.setItem('streamverse_recent_searches', JSON.stringify(recent));
+     updateRecentSearches();
+   }
+   
+   function updateRecentSearches() {
+     const recent = getRecentSearches();
+     recentSearchesDiv.innerHTML = '';
+     
+     if (recent.length === 0) {
+       recentSearchesDiv.innerHTML = '<span style="color: var(--cr-text-muted); font-size: 0.85rem;">No recent searches</span>';
+       return;
+     }
+     
+     recent.forEach(query => {
+       const tag = document.createElement('a');
+       tag.href = '#';
+       tag.className = 'sv-suggestion-tag';
+       tag.textContent = query;
+       tag.onclick = function(e) {
+         e.preventDefault();
+         searchQuery.value = query;
+         searchQuery.dispatchEvent(new Event('input'));
+       };
+       recentSearchesDiv.appendChild(tag);
+     });
+   }
+   
+   function updatePopularGenres(genres) {
+     popularGenresDiv.innerHTML = '';
+     if (!genres || genres.length === 0) return;
+     
+     genres.forEach(genre => {
+       const tag = document.createElement('a');
+       tag.href = '#';
+       tag.className = 'sv-suggestion-tag';
+       tag.textContent = genre;
+       tag.onclick = function(e) {
+         e.preventDefault();
+         genreFilter.value = genre;
+         performRealTimeSearch();
+       };
+       popularGenresDiv.appendChild(tag);
+     });
+   }
+   
+   // Perform real-time search
+   async function performRealTimeSearch() {
+     const query = searchQuery.value.trim();
+     const genre = genreFilter.value;
+     
+     // Show suggestions if search is empty
+     if (!query && !genre) {
+       showSuggestions();
+       return;
+     }
+     
+     // Show loading
+     resultsContent.innerHTML = '<div class="sv-loading">Searching</div>';
+     searchResults.style.display = 'block';
+     
+     try {
+       const params = new URLSearchParams();
+       if (query) params.set('q', query);
+       if (genre) params.set('genre', genre);
+       
+       const response = await fetch(`{{ url_for('api_search') }}?${params.toString()}`);
+       const data = await response.json();
+       
+       // Update popular genres
+       if (data.popular_genres) {
+         updatePopularGenres(data.popular_genres);
+       }
+       
+       // Display results
+       displaySearchResults(data.movies, data.count);
+       resultsCount.textContent = `${data.count} result${data.count !== 1 ? 's' : ''}`;
+       
+       // Save to recent searches
+       if (query) {
+         saveRecentSearch(query);
+       }
+     } catch (error) {
+       console.error('Search error:', error);
+       resultsContent.innerHTML = '<div class="sv-no-results">Error loading results. Please try again.</div>';
+     }
+   }
+   
+   function displaySearchResults(movies, count) {
+     if (count === 0) {
+       resultsContent.innerHTML = '<div class="sv-no-results">No movies found. Try a different search term.</div>';
+       return;
+     }
+     
+     resultsContent.innerHTML = '';
+     
+     movies.forEach(movie => {
+       const item = document.createElement('a');
+       item.href = `{{ url_for('movie_detail', movie_id=0) }}`.replace('0', movie.id);
+       item.className = 'sv-search-result-item';
+       
+       item.innerHTML = `
+         <img src="${movie.poster_url}" alt="${movie.title}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+         <div class="sv-search-result-info">
+           <div class="sv-search-result-title">${movie.title}</div>
+           <div class="sv-search-result-meta">
+             ${movie.genre ? `<span class="sv-search-result-genre">${movie.genre}</span>` : ''}
+             ${movie.imdb_rating ? `<span class="sv-search-result-rating">⭐ ${movie.imdb_rating.toFixed(1)}/10</span>` : ''}
+           </div>
+           ${movie.description ? `<div class="sv-search-result-desc">${movie.description}</div>` : ''}
+         </div>
+       `;
+       
+       resultsContent.appendChild(item);
+     });
+   }
+   
+   function showSuggestions() {
+     resultsContent.innerHTML = '';
+     searchResults.style.display = 'block';
+     resultsCount.textContent = 'Suggestions';
+     updateRecentSearches();
+   }
+   
+   // Real-time search with debouncing (500ms delay)
+   if (searchQuery) {
+     searchQuery.addEventListener('input', function() {
+       clearTimeout(searchTimeout);
+       
+       // Show/hide clear button
+       if (this.value.trim()) {
+         if (!clearSearchBtn) {
+           const clearBtn = document.createElement('button');
+           clearBtn.type = 'button';
+           clearBtn.className = 'sv-search-clear';
+           clearBtn.id = 'clearSearch';
+           clearBtn.innerHTML = '✕';
+           clearBtn.setAttribute('aria-label', 'Clear search');
+           clearBtn.onclick = function() {
+             searchQuery.value = '';
+             clearBtn.remove();
+             showSuggestions();
+           };
+           searchQuery.parentElement.appendChild(clearBtn);
+         }
+       } else if (clearSearchBtn) {
+         clearSearchBtn.remove();
+       }
+       
+       // Debounce search
+       searchTimeout = setTimeout(function() {
+         performRealTimeSearch();
+       }, 500);
+     });
+     
+     // Show suggestions on focus if empty
+     searchQuery.addEventListener('focus', function() {
+       if (!this.value.trim() && !genreFilter.value) {
+         showSuggestions();
+       }
+     });
+     
+     // Handle Enter key (submit form)
+     searchQuery.addEventListener('keypress', function(e) {
+       if (e.key === 'Enter') {
+         e.preventDefault();
+         clearTimeout(searchTimeout);
+         if (!isSubmitting) {
+           isSubmitting = true;
+           searchForm.submit();
+         }
+       }
+     });
+   }
+   
+   // Clear search button
+   if (clearSearchBtn) {
+     clearSearchBtn.addEventListener('click', function() {
+       searchQuery.value = '';
+       this.remove();
+       showSuggestions();
+     });
+   }
+   
+   // Close results button
+   if (closeResultsBtn) {
+     closeResultsBtn.addEventListener('click', function() {
+       searchResults.style.display = 'none';
+     });
+   }
+   
+   // Genre filter change (immediate search)
+   if (genreFilter) {
+     genreFilter.addEventListener('change', function() {
+       clearTimeout(searchTimeout);
+       performRealTimeSearch();
+     });
+   }
+   
+   // Close results when clicking outside
+   document.addEventListener('click', function(e) {
+     const searchContainer = document.querySelector('.sv-search-container');
+     if (searchContainer && !searchContainer.contains(e.target)) {
+       searchResults.style.display = 'none';
+     }
+   });
+   
+   // Load popular genres on page load
+   fetch('{{ url_for("api_search") }}')
+     .then(response => response.json())
+     .then(data => {
+       if (data.popular_genres) {
+         updatePopularGenres(data.popular_genres);
+       }
+     })
+     .catch(err => console.error('Error loading popular genres:', err));
+   
+   // Initialize recent searches
+   updateRecentSearches();
+ });
 </script>
 
 {% endblock %}

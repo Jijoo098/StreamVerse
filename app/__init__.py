@@ -62,6 +62,7 @@ def create_app(config_name='default'):
     # Main routes
     app.add_url_rule('/', 'landing', main.landing)
     app.add_url_rule('/home', 'home', main.home)
+    app.add_url_rule('/api/search', 'api_search', main.api_search)
     
     # Auth routes
     app.add_url_rule('/login', 'login', auth.login, methods=['GET', 'POST'])
