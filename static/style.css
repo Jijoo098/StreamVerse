@@ -68,7 +68,7 @@
 .sv-input{ 
   background: var(--cr-bg-card);
   border: 1px solid var(--cr-border);
-  color: var(--cr-text-primary);
+  color: var(--cr-text-primary) !important;
   border-radius: 8px;
   transition: all 0.3s ease;
 }
@@ -76,6 +76,69 @@
   box-shadow: 0 0 0 3px rgba(255,107,53,0.2);
   border-color: var(--cr-orange);
   background: var(--cr-bg-hover);
+  color: var(--cr-text-primary) !important;
+}
+.sv-input::placeholder {
+  color: var(--cr-text-muted) !important;
+  opacity: 0.7;
+}
+
+/* Ensure all form controls have white text */
+.form-control {
+  background: var(--cr-bg-card) !important;
+  border: 1px solid var(--cr-border) !important;
+  color: var(--cr-text-primary) !important;
+  border-radius: 8px;
+}
+.form-control:focus {
+  background: var(--cr-bg-hover) !important;
+  border-color: var(--cr-orange) !important;
+  color: var(--cr-text-primary) !important;
+  box-shadow: 0 0 0 3px rgba(255,107,53,0.2) !important;
+}
+.form-control::placeholder {
+  color: var(--cr-text-muted) !important;
+  opacity: 0.7;
+}
+
+/* Select dropdown styling */
+select.form-control,
+select.sv-input {
+  background: var(--cr-bg-card) !important;
+  color: var(--cr-text-primary) !important;
+  border: 1px solid var(--cr-border) !important;
+}
+select.form-control:focus,
+select.sv-input:focus {
+  background: var(--cr-bg-hover) !important;
+  border-color: var(--cr-orange) !important;
+  color: var(--cr-text-primary) !important;
+}
+select.form-control option,
+select.sv-input option {
+  background: var(--cr-bg-card) !important;
+  color: var(--cr-text-primary) !important;
+}
+
+/* Textarea styling */
+textarea.form-control,
+textarea.sv-input {
+  background: var(--cr-bg-card) !important;
+  border: 1px solid var(--cr-border) !important;
+  color: var(--cr-text-primary) !important;
+  border-radius: 8px;
+}
+textarea.form-control:focus,
+textarea.sv-input:focus {
+  background: var(--cr-bg-hover) !important;
+  border-color: var(--cr-orange) !important;
+  color: var(--cr-text-primary) !important;
+  box-shadow: 0 0 0 3px rgba(255,107,53,0.2) !important;
+}
+textarea.form-control::placeholder,
+textarea.sv-input::placeholder {
+  color: var(--cr-text-muted) !important;
+  opacity: 0.7;
 }
 .sv-flashes{ 
   position: sticky; 
@@ -539,19 +602,23 @@
 }
 
 .carousel-indicators button {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: rgba(255,255,255,0.5);
-  border: 2px solid rgba(255,255,255,0.8);
-  margin: 0 0.5rem;
+  background-color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.6);
+  margin: 0 0.4rem;
   transition: all 0.3s ease;
+  opacity: 0.7;
 }
 
 .carousel-indicators button.active {
   background-color: var(--cr-orange);
   border-color: var(--cr-orange);
-  transform: scale(1.2);
+  transform: scale(1.1);
+  opacity: 1;
+  width: 10px;
+  height: 10px;
 }
 
 .carousel-control-prev,

@@ -2,10 +2,11 @@
 {% set title = "Browse | StreamVerse" %}
 {% block content %}
 
-{% if featured_movies and featured_movies|length > 0 and not q and not genre %}
+{% if featured_movies and featured_movies|length > 1 and not q and not genre %}
   <!-- Featured Movies Carousel - Auto Moving -->
   <section class="sv-carousel-section" onmouseenter="pauseCarousel()" onmouseleave="resumeCarousel()">
-    <div id="featuredCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-wrap="true">
+    <div id="featuredCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-wrap="true" data-bs-keyboard="true">
+      {% if featured_movies|length > 1 %}
       <div class="carousel-indicators">
         {% for movie in featured_movies %}
           <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="{{ loop.index0 }}" 
@@ -13,6 +14,7 @@
                   aria-label="Slide {{ loop.index }}"></button>
         {% endfor %}
       </div>
+      {% endif %}
       
       <div class="carousel-inner">
         {% for movie in featured_movies %}
@@ -224,16 +226,34 @@
 document.addEventListener('DOMContentLoaded', function() {
   const carouselElement = document.querySelector('#featuredCarousel');
   if (carouselElement) {
-    // Initialize Bootstrap carousel with auto-play
-    const carousel = new bootstrap.Carousel(carouselElement, {
-      interval: 5000, // 5 seconds
-      ride: 'carousel',
-      wrap: true,
-      pause: 'hover'
-    });
-    
-    // Ensure it starts automatically
-    carousel.cycle();
+    // Wait a bit to ensure Bootstrap is fully loaded
+    setTimeout(function() {
+      // Get existing instance or create new one
+      let carousel = bootstrap.Carousel.getInstance(carouselElement);
+      
+      if (!carousel) {
+        // Initialize Bootstrap carousel with auto-play
+        carousel = new bootstrap.Carousel(carouselElement, {
+          interval: 5000, // 5 seconds
+          ride: 'carousel',
+          wrap: true,
+          pause: 'hover',
+          keyboard: true
+        });
+      }
+      
+      // Ensure it starts automatically
+      if (carousel) {
+        carousel.cycle();
+        
+        // Force start if not already cycling
+        setTimeout(function() {
+          if (carousel && !carousel._isPaused) {
+            carousel.cycle();
+          }
+        }, 100);
+      }
+    }, 100);
   }
 });
 
@@ -250,9 +270,38 @@ function resumeCarousel() {
   const carousel = document.querySelector('#featuredCarousel');
   if (carousel) {
     const bsCarousel = bootstrap.Carousel.getInstance(carousel);
-    if (bsCarousel) bsCarousel.cycle();
+    if (bsCarousel) {
+      bsCarousel.cycle();
+      // Force resume if needed
+      if (bsCarousel._isPaused) {
+        bsCarousel._isPaused = false;
+        bsCarousel.cycle();
+      }
+    }
   }
 }
+
+// Auto-start carousel on page load (fallback)
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    const carouselElement = document.querySelector('#featuredCarousel');
+    if (carouselElement) {
+      const carousel = bootstrap.Carousel.getInstance(carouselElement);
+      if (carousel) {
+        carousel.cycle();
+      } else {
+        // If no instance exists, create one
+        const newCarousel = new bootstrap.Carousel(carouselElement, {
+          interval: 5000,
+          ride: 'carousel',
+          wrap: true,
+          pause: 'hover'
+        });
+        newCarousel.cycle();
+      }
+    }
+  }, 200);
+});
 
 // Horizontal carousel scroll function
 function scrollCarousel(carouselId, direction) {

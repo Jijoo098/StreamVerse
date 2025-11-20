@@ -39,8 +39,8 @@ def home():
         (Movie.tags.ilike('%Popular%'))
     ).order_by(Movie.created_at.desc()).limit(5).all()
     
-    # If no tagged movies, use latest 5 movies
-    if not featured_movies:
+    # If no tagged movies or less than 3, use latest 5 movies
+    if not featured_movies or len(featured_movies) < 3:
         featured_movies = Movie.query.order_by(Movie.created_at.desc()).limit(5).all()
     
     return render_template('browse.html', movies=movies, featured_movies=featured_movies, q=q, genre=genre)
