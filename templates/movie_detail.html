@@ -3,56 +3,88 @@
 
 {% block content %}
 <!-- Hero with blurred background -->
-<section class="sv-hero-blur" style="--hero-bg:url('{{ movie.poster_url }}')">
+{% set poster_bg = movie.poster_url or url_for('static', filename='images/default_poster.jpg') %}
+<section class="sv-hero-blur" style="--hero-bg:url('{{ poster_bg }}')">
   <div class="container py-5">
     <div class="row g-4 align-items-start">
       <!-- Poster -->
-      <div class="col-lg-4">
-        <img class="sv-poster-xxl" src="{{ movie.poster_url }}" alt="{{ movie.title }}">
+      <div class="col-lg-4 col-md-5">
+        {% set default_poster = url_for('static', filename='images/default_poster.jpg') %}
+        <img class="sv-poster-xxl" src="{{ movie.poster_url or default_poster }}" alt="{{ movie.title }}" onerror="this.src='{{ default_poster }}'">
       </div>
 
       <!-- Info -->
-      <div class="col-lg-8">
-        <h1 class="display-4 fw-bold mb-2">{{ movie.title }}</h1>
+      <div class="col-lg-8 col-md-7">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <h1 class="display-4 fw-bold mb-0">{{ movie.title }}</h1>
+          {% if movie.tags and 'premium' in movie.tags|lower %}
+            <span class="sv-premium-badge" style="position: static;">Premium</span>
+          {% endif %}
+        </div>
 
-        {% if movie.genre or movie.release_date %}
-        <p class="text-secondary mb-3">
-          {% if movie.genre %}<strong>Genre:</strong> {{ movie.genre }}{% endif %}
-          {% if movie.genre and movie.release_date %} &nbsp;|&nbsp; {% endif %}
-          {% if movie.release_date %}<strong>Release:</strong> {{ movie.release_date }}{% endif %}
-        </p>
+        <!-- Metadata Row -->
+        <div class="d-flex flex-wrap gap-3 mb-3" style="color: var(--cr-text-secondary);">
+          {% if movie.genre %}
+            <span><strong>Genre:</strong> {{ movie.genre }}</span>
+          {% endif %}
+          {% if movie.release_date %}
+            <span><strong>Release:</strong> {{ movie.release_date }}</span>
+          {% endif %}
+          {% if movie.runtime %}
+            <span><strong>Runtime:</strong> {{ movie.runtime }} min</span>
+          {% endif %}
+          {% if movie.age_rating %}
+            <span><strong>Rating:</strong> {{ movie.age_rating }}</span>
+          {% endif %}
+          {% if movie.imdb_rating %}
+            <span class="text-warning"><strong>⭐ IMDB:</strong> {{ "%.1f"|format(movie.imdb_rating) }}/10</span>
+          {% endif %}
+        </div>
+
+        {% if movie.language %}
+          <div class="mb-3">
+            <span class="badge" style="background: rgba(255,107,53,0.2); color: var(--cr-orange); border: 1px solid var(--cr-orange);">
+              {{ movie.language }}
+            </span>
+          </div>
         {% endif %}
 
-        <p class="sv-desc mb-3">{{ movie.description }}</p>
+        <p class="sv-desc mb-4" style="font-size: 1.1rem; line-height: 1.8;">{{ movie.description }}</p>
 
         <!-- Action Buttons -->
-        <div class="d-flex flex-wrap gap-2">
+        <div class="d-flex flex-wrap gap-3 mb-4">
           {% if movie.trailer_url %}
-            <a class="btn btn-light" href="{{ movie.trailer_url }}" target="_blank">▶ Play Trailer</a>
+            <a class="btn btn-primary btn-lg" href="{{ movie.trailer_url }}" target="_blank">
+              ▶ Play Trailer
+            </a>
           {% else %}
-            <a class="btn btn-light" target="_blank"
-               href="https://www.youtube.com/results?search_query={{ movie.title|urlencode }}+trailer">▶ Play Trailer</a>
+            <a class="btn btn-primary btn-lg" target="_blank"
+               href="https://www.youtube.com/results?search_query={{ movie.title|urlencode }}+trailer">
+              ▶ Play Trailer
+            </a>
           {% endif %}
 
           {% if current_user.is_authenticated %}
-            <a class="btn btn-danger" href="{{ url_for('add_review', movie_id=movie.id) }}">⭐ Add Review</a>
+            <a class="btn btn-danger btn-lg" href="{{ url_for('add_review', movie_id=movie.id) }}">
+              ⭐ Add Review
+            </a>
             <form method="POST" action="{{ url_for('add_to_watchlist', movie_id=movie.id) }}" class="d-inline">
-              <button class="btn btn-outline-light">➕ Add to Watchlist</button>
+              <button type="submit" class="btn btn-outline-light btn-lg">➕ Add to Watchlist</button>
             </form>
           {% else %}
-            <a class="btn btn-danger" href="{{ url_for('login') }}">Login to Review</a>
+            <a class="btn btn-danger btn-lg" href="{{ url_for('login') }}">Login to Review</a>
           {% endif %}
 
           {% if current_user.is_authenticated and current_user.is_admin %}
             <!-- Admin: Edit (modal) -->
-            <button class="btn btn-outline-warning ms-2" data-bs-toggle="modal" data-bs-target="#editMovieModal">
+            <button class="btn btn-outline-warning btn-lg" data-bs-toggle="modal" data-bs-target="#editMovieModal">
               ✏ Edit Movie
             </button>
 
             <!-- Admin: Delete (full button, with confirm) -->
             <form action="{{ url_for('delete_movie', movie_id=movie.id) }}" method="POST"
                   onsubmit="return confirm('Delete {{ movie.title }} permanently?');" class="d-inline">
-              <button type="submit" class="btn btn-danger ms-2">🗑 Delete Movie</button>
+              <button type="submit" class="btn btn-danger btn-lg">🗑 Delete Movie</button>
             </form>
           {% endif %}
         </div>
@@ -61,25 +93,38 @@
   </div>
 </section>
 
-<!-- Reviews -->
+<!-- Reviews Section -->
 <div class="container py-5">
-  <h3 class="mb-3">User Reviews</h3>
-  {% if reviews and reviews|length > 0 %}
-    <div class="sv-reviews">
-      {% for review in reviews %}
-      <div class="sv-review">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="fw-semibold">{{ review.user.username if review.user else 'User' }}</div>
-          <div>⭐ {{ review.rating }}/10</div>
+  <div class="sv-section">
+    <h2 class="sv-section-title">User Reviews</h2>
+    {% if reviews and reviews|length > 0 %}
+      <div class="sv-reviews">
+        {% for review in reviews %}
+        <div class="sv-review">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <strong style="color: var(--cr-orange);">{{ review.user.username if review.user else 'User' }}</strong>
+              <span class="badge" style="background: linear-gradient(135deg, var(--cr-orange), var(--cr-red));">
+                ⭐ {{ review.rating }}/10
+              </span>
+            </div>
+            <small class="text-secondary">{{ review.timestamp.strftime('%B %d, %Y at %I:%M %p') }}</small>
+          </div>
+          <p class="mb-0" style="color: var(--cr-text-secondary); line-height: 1.6;">{{ review.content }}</p>
         </div>
-        <p class="mb-1">{{ review.content }}</p>
-        <small class="text-secondary">{{ review.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="text-secondary">No reviews yet. Be the first!</p>
-  {% endif %}
+    {% else %}
+      <div class="text-center py-5">
+        <p class="text-secondary fs-5 mb-3">No reviews yet. Be the first to review!</p>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('add_review', movie_id=movie.id) }}" class="btn btn-primary">Write a Review</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-primary">Login to Review</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
 </div>
 
 {% if current_user.is_authenticated and current_user.is_admin %}

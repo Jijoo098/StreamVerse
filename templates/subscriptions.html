@@ -2,31 +2,69 @@
 
 {% block content %}
 <div class="container py-5">
-  <h2 class="mb-3">Subscription Plans</h2>
-  <p>Choose a plan to enjoy premium content.</p>
-  <div class="row">
-    {% for plan in plans %}
-    <div class="col-md-4">
-      <div class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">{{ plan.name }}</h5>
-          <p class="card-text">Price: <strong>${{ '%.2f'|format(plan.price) }}</strong></p>
-          <p class="card-text">Duration: {{ plan.duration_days }} days</p>
-          {% if active and active.plan_id == plan.id %}
-            <span class="badge bg-success">Active until {{ active.end_date.strftime('%Y-%m-%d') }}</span>
-            <form method="POST" action="{{ url_for('cancel_subscription') }}" style="display:inline">
-              <button class="btn btn-sm btn-outline-warning ms-2">Cancel</button>
-            </form>
-          {% elif plan.price == 0.0 %}
-            <span class="badge bg-secondary">Free</span>
-            <a class="btn btn-outline-primary btn-sm float-end" href="{{ url_for('subscribe', plan_id=plan.id) }}">Select</a>
-          {% else %}
-            <a class="btn btn-primary float-end" href="{{ url_for('subscribe', plan_id=plan.id) }}">Subscribe</a>
-          {% endif %}
+  <div class="sv-section">
+    <h2 class="sv-section-title">Subscription Plans</h2>
+    <p class="text-secondary mb-5" style="font-size: 1.1rem;">Choose a plan to unlock premium content and enjoy unlimited streaming.</p>
+    
+    <div class="row g-4">
+      {% for plan in plans %}
+      <div class="col-md-4">
+        <div class="sv-card {% if active and active.plan_id == plan.id %}border-warning{% endif %}" style="height: 100%;">
+          <div class="sv-card-body" style="padding: 2rem; display: flex; flex-direction: column;">
+            <div class="text-center mb-4">
+              <h3 class="fw-bold mb-2" style="font-size: 1.75rem; color: var(--cr-orange);">{{ plan.name }}</h3>
+              <div class="mb-3">
+                <span class="display-4 fw-bold">${{ '%.2f'|format(plan.price) }}</span>
+                {% if plan.price > 0 %}
+                  <span class="text-secondary">/month</span>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="mb-4" style="flex-grow: 1;">
+              <p class="text-secondary mb-3">
+                <strong>Duration:</strong> {{ plan.duration_days }} days
+              </p>
+              {% if plan.price == 0.0 %}
+                <ul class="list-unstyled text-secondary">
+                  <li class="mb-2">✓ Basic content access</li>
+                  <li class="mb-2">✓ Standard quality</li>
+                </ul>
+              {% else %}
+                <ul class="list-unstyled text-secondary">
+                  <li class="mb-2">✓ Premium content access</li>
+                  <li class="mb-2">✓ HD quality streaming</li>
+                  <li class="mb-2">✓ Ad-free experience</li>
+                  <li class="mb-2">✓ Early access to new releases</li>
+                </ul>
+              {% endif %}
+            </div>
+            
+            <div class="text-center">
+              {% if active and active.plan_id == plan.id %}
+                <div class="mb-3">
+                  <span class="badge" style="background: linear-gradient(135deg, var(--cr-orange), var(--cr-red)); padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    ✓ Active until {{ active.end_date.strftime('%B %d, %Y') }}
+                  </span>
+                </div>
+                <form method="POST" action="{{ url_for('cancel_subscription') }}">
+                  <button class="btn btn-outline-warning w-100">Cancel Subscription</button>
+                </form>
+              {% elif plan.price == 0.0 %}
+                <a class="btn btn-outline-light w-100" href="{{ url_for('subscribe', plan_id=plan.id) }}" style="font-weight: 600;">
+                  Select Free Plan
+                </a>
+              {% else %}
+                <a class="btn btn-primary w-100" href="{{ url_for('subscribe', plan_id=plan.id) }}" style="font-weight: 600; padding: 0.75rem;">
+                  Subscribe Now
+                </a>
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
 </div>
 {% endblock %}

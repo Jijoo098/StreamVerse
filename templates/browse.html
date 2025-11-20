@@ -2,49 +2,269 @@
 {% set title = "Browse | StreamVerse" %}
 {% block content %}
 
-<div class="container py-4">
-  <form class="row g-2 mb-4" method="get">
-    <div class="col-md-5">
-      <input class="form-control sv-input" name="q" placeholder="Search title..." value="{{ q or '' }}">
-    </div>
-    <div class="col-md-3">
-      <input class="form-control sv-input" name="genre" placeholder="Genre..." value="{{ genre or '' }}">
-    </div>
-    <div class="col-md-2">
-      <button class="btn btn-danger w-100">Search</button>
-    </div>
-  </form>
-
-  <div class="row g-4">
-    {% for m in movies %}
-      <div class="col-6 col-sm-4 col-md-3 col-xl-2">
-        <div class="sv-tile">
-          <img src="{{ m.poster_url }}" alt="{{ m.title }}">
-          {% if m.tags and 'premium' in m.tags|lower %}
-            <div class="badge bg-warning text-dark sv-premium-badge">Premium</div>
-          {% endif %}
-          <div class="sv-tile-overlay">
-            <div class="sv-tile-actions">
-              {% if m.trailer_url %}
-                <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank">Play</a>
-              {% else %}
-                <a class="btn btn-sm btn-light"
-                   href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
-                   target="_blank">Play</a>
-              {% endif %}
-              <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}">Info</a>
+{% if featured_movies and featured_movies|length > 0 and not q and not genre %}
+  <!-- Featured Movies Carousel - Auto Moving -->
+  <section class="sv-carousel-section" onmouseenter="pauseCarousel()" onmouseleave="resumeCarousel()">
+    <div id="featuredCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-wrap="true">
+      <div class="carousel-indicators">
+        {% for movie in featured_movies %}
+          <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="{{ loop.index0 }}" 
+                  {% if loop.first %}class="active" aria-current="true"{% endif %} 
+                  aria-label="Slide {{ loop.index }}"></button>
+        {% endfor %}
+      </div>
+      
+      <div class="carousel-inner">
+        {% for movie in featured_movies %}
+          <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <div class="sv-carousel-slide" style="--carousel-bg: url('{{ movie.poster_url or url_for('static', filename='images/default_poster.jpg') }}')">
+              <div class="container">
+                <div class="row align-items-center min-vh-50">
+                  <div class="col-lg-6 col-md-8">
+                    <div class="sv-carousel-content">
+                      {% if movie.tags and 'premium' in movie.tags|lower %}
+                        <span class="sv-premium-badge mb-3" style="position: static; display: inline-block;">Premium</span>
+                      {% endif %}
+                      <h1 class="display-3 fw-bold mb-3">{{ movie.title }}</h1>
+                      <p class="lead mb-4">{{ movie.description[:250] }}{% if movie.description|length > 250 %}...{% endif %}</p>
+                      
+                      <div class="d-flex flex-wrap gap-3 mb-3">
+                        {% if movie.genre %}
+                          <span class="badge" style="background: rgba(255,107,53,0.3); color: var(--cr-orange); border: 1px solid var(--cr-orange);">
+                            {{ movie.genre }}
+                          </span>
+                        {% endif %}
+                        {% if movie.imdb_rating %}
+                          <span class="badge" style="background: rgba(255,107,53,0.3); color: var(--cr-orange); border: 1px solid var(--cr-orange);">
+                            ⭐ {{ "%.1f"|format(movie.imdb_rating) }}/10
+                          </span>
+                        {% endif %}
+                        {% if movie.release_date %}
+                          <span class="badge" style="background: rgba(255,107,53,0.3); color: var(--cr-orange); border: 1px solid var(--cr-orange);">
+                            {{ movie.release_date }}
+                          </span>
+                        {% endif %}
+                      </div>
+                      
+                      <div class="sv-hero-actions">
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" class="btn btn-primary btn-lg">
+                          ▶ Watch Now
+                        </a>
+                        {% if movie.trailer_url %}
+                          <a href="{{ movie.trailer_url }}" target="_blank" class="btn btn-outline-light btn-lg">
+                            ▶ Trailer
+                          </a>
+                        {% endif %}
+                        {% if current_user.is_authenticated %}
+                          <form method="POST" action="{{ url_for('add_to_watchlist', movie_id=movie.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-light btn-lg">➕ Add to List</button>
+                          </form>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="sv-tile-meta mt-2">
-          <div class="sv-title">{{ m.title }}</div>
-          {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
-        </div>
+        {% endfor %}
       </div>
-    {% else %}
-      <p class="text-center text-muted">No movies found.</p>
-    {% endfor %}
+      
+      <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </section>
+{% endif %}
+
+<div class="container py-4">
+  <!-- Search Bar -->
+  <form class="row g-2 mb-5" method="get" action="{{ url_for('home') }}" id="searchForm">
+    <div class="col-md-5">
+      <input class="form-control sv-input" name="q" id="searchQuery" placeholder="🔍 Search movies..." value="{{ q or '' }}" autocomplete="off">
+    </div>
+    <div class="col-md-3">
+      <select class="form-control sv-input" name="genre" id="genreFilter">
+        <option value="">🎭 All Genres</option>
+        <option value="Action" {% if genre == 'Action' %}selected{% endif %}>Action</option>
+        <option value="Drama" {% if genre == 'Drama' %}selected{% endif %}>Drama</option>
+        <option value="Comedy" {% if genre == 'Comedy' %}selected{% endif %}>Comedy</option>
+        <option value="Thriller" {% if genre == 'Thriller' %}selected{% endif %}>Thriller</option>
+        <option value="Romance" {% if genre == 'Romance' %}selected{% endif %}>Romance</option>
+        <option value="Horror" {% if genre == 'Horror' %}selected{% endif %}>Horror</option>
+        <option value="Crime" {% if genre == 'Crime' %}selected{% endif %}>Crime</option>
+        <option value="Fantasy" {% if genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+        <option value="Adventure" {% if genre == 'Adventure' %}selected{% endif %}>Adventure</option>
+        <option value="Animation" {% if genre == 'Animation' %}selected{% endif %}>Animation</option>
+        <option value="Sport" {% if genre == 'Sport' %}selected{% endif %}>Sport</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-danger w-100">Search</button>
+    </div>
+    {% if q or genre %}
+      <div class="col-md-2">
+        <a href="{{ url_for('home') }}" class="btn btn-outline-light w-100">Clear</a>
+      </div>
+    {% endif %}
+  </form>
+
+  <!-- Trending Movies Carousel (Horizontal Scroll) -->
+  {% if not q and not genre and movies|length > 6 %}
+  <div class="container py-4">
+    <div class="sv-section">
+      <h2 class="sv-section-title">🔥 Trending Now</h2>
+      <div class="sv-horizontal-carousel">
+        <div class="sv-carousel-container">
+          <div class="sv-carousel-track" id="trendingCarousel">
+            {% for m in movies[:10] %}
+            <div class="sv-carousel-item">
+              <div class="sv-tile">
+                <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
+                  <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+                  {% if m.tags and 'premium' in m.tags|lower %}
+                    <div class="sv-premium-badge">Premium</div>
+                  {% endif %}
+                  <div class="sv-tile-overlay">
+                    <div class="sv-tile-actions">
+                      {% if m.trailer_url %}
+                        <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
+                      {% else %}
+                        <a class="btn btn-sm btn-light"
+                           href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                           target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
+                      {% endif %}
+                      <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="sv-tile-meta mt-2">
+                <div class="sv-title">{{ m.title }}</div>
+                {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+                {% if m.imdb_rating %}
+                  <div class="sv-genre mt-1">⭐ {{ "%.1f"|format(m.imdb_rating) }}/10</div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <button class="sv-carousel-btn sv-carousel-prev" onclick="scrollCarousel('trendingCarousel', -1)">‹</button>
+        <button class="sv-carousel-btn sv-carousel-next" onclick="scrollCarousel('trendingCarousel', 1)">›</button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Content Section -->
+  <div class="sv-section">
+    <h2 class="sv-section-title">
+      {% if q or genre %}
+        Search Results
+      {% else %}
+        All Movies
+      {% endif %}
+    </h2>
+    
+    <div class="row g-4">
+      {% for m in movies %}
+        <div class="col-6 col-sm-4 col-md-3 col-xl-2">
+          <div class="sv-tile">
+            <a href="{{ url_for('movie_detail', movie_id=m.id) }}" style="text-decoration: none; color: inherit;">
+              <img src="{{ m.poster_url or url_for('static', filename='images/default_poster.jpg') }}" alt="{{ m.title }}" onerror="this.src='{{ url_for('static', filename='images/default_poster.jpg') }}'">
+              {% if m.tags and 'premium' in m.tags|lower %}
+                <div class="sv-premium-badge">Premium</div>
+              {% endif %}
+              <div class="sv-tile-overlay">
+                <div class="sv-tile-actions">
+                  {% if m.trailer_url %}
+                    <a class="btn btn-sm btn-light" href="{{ m.trailer_url }}" target="_blank" onclick="event.stopPropagation();">▶ Play</a>
+                  {% else %}
+                    <a class="btn btn-sm btn-light"
+                       href="https://www.youtube.com/results?search_query={{ m.title|urlencode }}+trailer"
+                       target="_blank" onclick="event.stopPropagation();">▶ Trailer</a>
+                  {% endif %}
+                  <a class="btn btn-sm btn-danger" href="{{ url_for('movie_detail', movie_id=m.id) }}" onclick="event.stopPropagation();">ℹ️ Info</a>
+                </div>
+              </div>
+            </a>
+          </div>
+          <div class="sv-tile-meta mt-2">
+            <div class="sv-title">{{ m.title }}</div>
+            {% if m.genre %}<div class="sv-genre">{{ m.genre }}</div>{% endif %}
+            {% if m.imdb_rating %}
+              <div class="sv-genre mt-1">
+                ⭐ {{ "%.1f"|format(m.imdb_rating) }}/10
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="col-12">
+          <div class="text-center py-5">
+            <p class="text-muted fs-5">No movies found.</p>
+            {% if q or genre %}
+              <a href="{{ url_for('home') }}" class="btn btn-primary mt-3">Browse All Movies</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
   </div>
 </div>
+
+<script>
+// Carousel pause/resume functions
+function pauseCarousel() {
+  const carousel = document.querySelector('#featuredCarousel');
+  if (carousel) {
+    const bsCarousel = bootstrap.Carousel.getInstance(carousel);
+    if (bsCarousel) bsCarousel.pause();
+  }
+}
+
+function resumeCarousel() {
+  const carousel = document.querySelector('#featuredCarousel');
+  if (carousel) {
+    const bsCarousel = bootstrap.Carousel.getInstance(carousel);
+    if (bsCarousel) bsCarousel.cycle();
+  }
+}
+
+// Horizontal carousel scroll function
+function scrollCarousel(carouselId, direction) {
+  const carousel = document.getElementById(carouselId);
+  if (!carousel) return;
+  
+  const scrollAmount = 320; // Width of one card + gap
+  const currentScroll = carousel.scrollLeft;
+  const newScroll = currentScroll + (scrollAmount * direction);
+  
+  carousel.scrollTo({
+    left: newScroll,
+    behavior: 'smooth'
+  });
+}
+
+// Keyboard navigation for featured carousel
+document.addEventListener('keydown', function(e) {
+  const carousel = document.querySelector('#featuredCarousel');
+  if (!carousel) return;
+  
+  if (e.key === 'ArrowLeft') {
+    const prevBtn = carousel.querySelector('.carousel-control-prev');
+    if (prevBtn) prevBtn.click();
+  } else if (e.key === 'ArrowRight') {
+    const nextBtn = carousel.querySelector('.carousel-control-next');
+    if (nextBtn) nextBtn.click();
+  }
+});
+</script>
 
 {% endblock %}
